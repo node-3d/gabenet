@@ -1,0 +1,123 @@
+name: Build Binaries
+defaults:
+  run:
+    shell: bash
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release tag/version to build. Defaults to package.json version.'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  id-token: write
+  attestations: write
+
+jobs:
+  create_release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - name: Fetch Repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Install Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24.13.0
+          cache: 'npm'
+      - name: Get Package Version
+        id: package-version
+        run: |
+          release_tag="${{ inputs.release_tag }}"
+          if [ -z "$release_tag" ]; then release_tag="$(node -p "require('./package').version")"; fi
+          echo "version=$release_tag" >> "$GITHUB_OUTPUT"
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.package-version.outputs.version }}
+          name: Release ${{ steps.package-version.outputs.version }}
+
+  build:
+    name: Build (${{ matrix.target }})
+    needs: create_release
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - target: windows-x64
+            os: windows-2022
+            node_arch: x64
+            archflags: ''
+          - target: windows-arm64
+            os: windows-11-arm
+            node_arch: arm64
+            archflags: ''
+          - target: linux-x64
+            os: ubuntu-22.04
+            node_arch: x64
+            archflags: ''
+          - target: linux-arm64
+            os: ubuntu-22.04-arm
+            node_arch: arm64
+            archflags: ''
+          - target: darwin-x64
+            os: macos-26
+            node_arch: x64
+            archflags: '-arch x86_64'
+          - target: darwin-arm64
+            os: macos-26
+            node_arch: arm64
+            archflags: '-arch arm64'
+    runs-on: ${{ matrix.os }}
+    steps:
+      - name: Fetch Repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Install Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24.13.0
+          architecture: ${{ matrix.node_arch }}
+          cache: 'npm'
+      - name: Install Modules
+        # This source checkout builds the current addon, rather than downloading its
+        # own release archive. Native dependencies are restored in the next step.
+        run: npm ci --ignore-scripts
+      - name: Install Native Dependencies
+        run: npm rebuild @node-3d/deps-gns @node-3d/segfault --ignore-scripts=false
+      - name: Build Current Binary
+        run: npm run build:rebuild
+        env:
+          ARCHFLAGS: ${{ matrix.archflags }}
+      - name: Get Package Version
+        id: package-version
+        run: |
+          release_tag="${{ inputs.release_tag }}"
+          if [ -z "$release_tag" ]; then release_tag="$(node -p "require('./package').version")"; fi
+          echo "version=$release_tag" >> "$GITHUB_OUTPUT"
+      - name: Pack Files
+        id: pack-files
+        run: node -e "import('@node-3d/addon-tools').then((m) => m.actionPack())" >> $GITHUB_OUTPUT
+      - name: Attest Binary
+        uses: actions/attest@v4
+        with:
+          subject-path: ${{ steps.pack-files.outputs.pack }}
+      - name: Store Binaries
+        uses: softprops/action-gh-release@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.package-version.outputs.version }}
+          name: Release ${{ steps.package-version.outputs.version }}
+          files: ${{ steps.pack-files.outputs.pack }}
