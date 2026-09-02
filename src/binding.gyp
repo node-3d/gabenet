@@ -5,7 +5,16 @@
 		'gns_bin': '<!(node -p "require(\'@node-3d/deps-gns\').bin")',
 	},
 	'targets': [{
-		'target_name': 'gabenet', 'includes': ['common.gypi'], 'sources': ['cpp/bindings.cpp'],
+		'target_name': 'gabenet', 'includes': ['common.gypi'], 'sources': [
+			'cpp/bindings.cpp',
+			'cpp/common.cpp',
+			'cpp/events.cpp',
+			'cpp/lifecycle.cpp',
+			'cpp/message.cpp',
+			'cpp/messages.cpp',
+			'cpp/sockets.cpp',
+			'cpp/utils.cpp',
+		],
 		'include_dirs': ['<(gns_include)', '<!@(node -e "import(\'@node-3d/addon-tools\').then((m) => m.printInclude())")'],
 		'library_dirs': ['<(gns_bin)'],
 		'conditions': [
