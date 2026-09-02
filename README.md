@@ -42,10 +42,11 @@ then run it in two terminals:
 node examples/udp-game.ts
 ```
 
-The first instance waits briefly for a localhost server and then creates one when none replies. The
-second instance joins as its client. Move the green local square with WASD or arrow keys; the blue square
-is the remote player. It demonstrates discovery, listen/connect/accept, input messages, authoritative
-server snapshots, rendering, and orderly native ownership in one small program.
+The first instance waits briefly for a localhost server and then creates one when none replies. Every
+later instance joins as a separately spawned client. Move the green local square with WASD or arrow keys;
+blue squares are the other players. Left-click to fire toward the cursor. It demonstrates discovery,
+listen/connect/accept, per-player input messages, server-authoritative player and projectile snapshots,
+rendering, and orderly native ownership in one small program.
 
 ## UDP sockets
 
