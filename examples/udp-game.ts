@@ -5,7 +5,10 @@ import { init, pollEvents, runCallbacks, shutdown, sockets } from '@node-3d/gabe
 const port = 39000;
 const probeTimeoutMs = 1500;
 const connectedState = 3;
-const tickRate = 20;
+const snapshotRate = 20;
+const movementSpeed = 3;
+// GameNetworkingSockets' k_nSteamNetworkingSend_UnreliableNoNagle.
+const unreliableNoNagle = 1;
 
 type TPlayer = { x: number; y: number; up: boolean; down: boolean; left: boolean; right: boolean };
 type TState = Readonly<{
@@ -26,9 +29,9 @@ const wait = (milliseconds: number): Promise<void> =>
 		setTimeout(res, milliseconds);
 	});
 
-const move = (player: TPlayer): void => {
-	player.x += (Number(player.right) - Number(player.left)) * 0.08;
-	player.y += (Number(player.up) - Number(player.down)) * 0.08;
+const move = (player: TPlayer, seconds: number): void => {
+	player.x += (Number(player.right) - Number(player.left)) * movementSpeed * seconds;
+	player.y += (Number(player.up) - Number(player.down)) * movementSpeed * seconds;
 	player.x = Math.max(-7.5, Math.min(7.5, player.x));
 	player.y = Math.max(-4.5, Math.min(4.5, player.y));
 };
@@ -37,7 +40,11 @@ const send = (
 	connection: ReturnType<typeof sockets.connectByIPAddress>,
 	value: TInput | TState,
 ): void => {
-	sockets.sendMessageToConnection(connection, Buffer.from(JSON.stringify(value)));
+	sockets.sendMessageToConnection(
+		connection,
+		Buffer.from(JSON.stringify(value)),
+		unreliableNoNagle,
+	);
 };
 
 const result = init();
@@ -47,6 +54,7 @@ if (!result.ok) {
 
 const local: TPlayer = { x: 0, y: 0, up: false, down: false, left: false, right: false };
 const remote: TPlayer = { x: 0, y: 0, up: false, down: false, left: false, right: false };
+const remoteTarget = { x: 0, y: 0 };
 let server = false;
 let listenSocket: ReturnType<typeof sockets.createListenSocketIP> | null = null;
 let peer: ReturnType<typeof sockets.connectByIPAddress> | null = null;
@@ -129,8 +137,12 @@ try {
 		return true;
 	});
 
-	let lastTick = 0;
+	let lastFrame = Date.now();
+	let lastSnapshot = 0;
 	const frame = (): void => {
+		const now = Date.now();
+		const seconds = Math.min((now - lastFrame) / 1000, 0.05);
+		lastFrame = now;
 		runCallbacks();
 		for (const event of pollEvents()) {
 			if (
@@ -149,23 +161,33 @@ try {
 					Object.assign(remote, value);
 				}
 				if (!server && value.type === 'state') {
-					Object.assign(local, value.client);
-					Object.assign(remote, value.server);
+					remoteTarget.x = value.server.x;
+					remoteTarget.y = value.server.y;
 				}
 			}
 		}
 
-		const now = Date.now();
-		if (now - lastTick >= 1000 / tickRate) {
-			move(local);
-			if (peer !== null) {
-				if (server) {
-					send(peer, { type: 'state', server: local, client: remote });
-				} else {
-					send(peer, { type: 'input', ...local });
-				}
+		move(local, seconds);
+		if (server) {
+			move(remote, seconds);
+		} else {
+			const interpolation = Math.min(seconds * 12, 1);
+			remote.x += (remoteTarget.x - remote.x) * interpolation;
+			remote.y += (remoteTarget.y - remote.y) * interpolation;
+		}
+		if (peer !== null && now - lastSnapshot >= 1000 / snapshotRate) {
+			if (server) {
+				send(peer, { type: 'state', server: local, client: remote });
+			} else {
+				send(peer, {
+					type: 'input',
+					up: local.up,
+					down: local.down,
+					left: local.left,
+					right: local.right,
+				});
 			}
-			lastTick = now;
+			lastSnapshot = now;
 		}
 		localMesh.position.set(local.x, local.y, 0);
 		remoteMesh.position.set(remote.x, remote.y, 0);
