@@ -35,7 +35,17 @@ Calling `init()` again while initialized succeeds without reinitializing GNS. `s
 to call when it is not initialized.
 
 See [docs/API.md](docs/API.md) for the namespace contract, ownership rules, and standalone support
-boundary. Runnable [examples](examples/README.md) demonstrate local socket-pair and UDP loopback use.
+boundary. The repository-only `examples/udp-game.ts` is a small graphical UDP game. Build this package,
+then run it in two terminals:
+
+```bash
+node examples/udp-game.ts
+```
+
+The first instance waits briefly for a localhost server and then creates one when none replies. The
+second instance joins as its client. Move the green local square with WASD or arrow keys; the blue square
+is the remote player. It demonstrates discovery, listen/connect/accept, input messages, authoritative
+server snapshots, rendering, and orderly native ownership in one small program.
 
 ## UDP sockets
 
