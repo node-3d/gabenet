@@ -14,9 +14,11 @@ npm install @node-3d/gabenet
 [GameNetworkingSockets](https://github.com/ValveSoftware/GameNetworkingSockets)
 transport. It does not use Steamworks and does not require a running Steam client.
 
-The initial API exposes the standalone library lifecycle. It is the common
-foundation for ordinary client/server UDP sockets and future P2P or custom
-signalling interfaces.
+It provides typed ESM bindings for ordinary client/server UDP, local socket
+pairs, connectionless messages, relay/ping status, identity and certificate
+management, and the standalone GNS P2P entrypoints. It uses N-API and installs
+prebuilt native binaries from this repository's GitHub releases; a matching
+release needs no local C++ toolchain or GameNetworkingSockets SDK.
 
 ```ts
 import { init, isInitialized, runCallbacks, shutdown } from '@node-3d/gabenet';
@@ -31,6 +33,9 @@ shutdown();
 `init()` returns `{ ok, errorMessage }`; it does not throw for a library initialization failure.
 Calling `init()` again while initialized succeeds without reinitializing GNS. `shutdown()` is safe
 to call when it is not initialized.
+
+See [docs/API.md](docs/API.md) for the namespace contract, ownership rules, and standalone support
+boundary. Runnable [examples](examples/README.md) demonstrate local socket-pair and UDP loopback use.
 
 ## UDP sockets
 

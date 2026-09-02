@@ -2,10 +2,10 @@
 	"author": "Luis Blanco <luisblanco1337@gmail.com>",
 	"name": "@node-3d/gabenet",
 	"version": "0.1.0",
-	"description": "GameNetworkingSockets bindings for Node.js",
+	"description": "Standalone GameNetworkingSockets native addon for Node.js",
 	"license": "MIT",
 	"main": "dist/index.js",
-	"keywords": ["addon", "networking", "gamenetworkingsockets", "udp", "p2p", "native", "bindings", "gyp"],
+	"keywords": ["addon", "networking", "gamenetworkingsockets", "udp", "p2p", "nat", "native", "bindings", "gyp"],
 	"files": ["dist", "install.js", "LICENSE", "package.json", "README.md", "tsconfig.json"],
 	"engines": { "node": ">=24.13.0", "npm": ">=11.6.2" },
 	"scripts": {

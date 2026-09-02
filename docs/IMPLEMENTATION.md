@@ -26,8 +26,8 @@ interfaces supplied by `@node-3d/deps-gns`. It never uses Steamworks interfaces.
 - Bind `SteamNetworkingSockets_Lib()`, `SteamNetworkingMessages_Lib()`, and
   `SteamNetworkingUtils_Lib()` semantics only.
 - Do not bind Steamworks API accessors or require a running Steam client.
-- P2P custom signalling is represented by a JavaScript-owned signalling adapter, not raw C++
-  `ISteamNetworkingConnectionSignaling` or receive-context pointers.
+- Custom P2P signalling is not yet exported. Its planned JavaScript-owned adapter will not expose raw
+  C++ `ISteamNetworkingConnectionSignaling` or receive-context pointers.
 - Memory allocator, lock callbacks, and service-thread initialization hooks are process-global C++
   hooks and are not ordinary JavaScript APIs.
 
