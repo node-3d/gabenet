@@ -21,7 +21,7 @@ try {
 	for (let attempt = 0; attempt < 100; ++attempt) {
 		runCallbacks();
 		const messages = sockets.receiveMessagesOnConnection(receiver);
-		if (messages.length > 0) {
+		if (messages.length > 0 && messages[0]) {
 			console.log(messages[0].data.toString());
 			break;
 		}

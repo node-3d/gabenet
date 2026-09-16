@@ -12,7 +12,7 @@ import {
 	utils,
 } from './index.ts';
 
-const delay = (): Promise<void> =>
+const delay = async (): Promise<void> =>
 	new Promise((res) => {
 		setTimeout(res, 5);
 	});
@@ -87,7 +87,7 @@ test('exchanges a message through a local socket pair and configures lanes', asy
 			await delay();
 		}
 		assert.equal(received.length, 1);
-		assert.equal(received[0].data.toString(), 'socket pair');
+		assert.equal(received[0]?.data.toString(), 'socket pair');
 	} finally {
 		if (connection1) {
 			sockets.closeConnection(connection1);
@@ -110,7 +110,7 @@ test('rejects invalid connectionless message identities', () => {
 });
 
 test('exchanges a reliable message through a local UDP listen socket', async () => {
-	const port = 39123;
+	const port = 39_123;
 	let listenSocket: ReturnType<typeof sockets.createListenSocketIP> | undefined = undefined;
 	let client: ReturnType<typeof sockets.connectByIPAddress> | undefined = undefined;
 	let server: ReturnType<typeof sockets.connectByIPAddress> | undefined = undefined;
@@ -161,7 +161,7 @@ test('exchanges a reliable message through a local UDP listen socket', async () 
 		}
 
 		assert.equal(messages.length, 1);
-		assert.equal(messages[0].data.toString(), 'hello from gabenet');
+		assert.equal(messages[0]?.data.toString(), 'hello from gabenet');
 	} finally {
 		if (client) {
 			sockets.closeConnection(client);

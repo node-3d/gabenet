@@ -2,7 +2,7 @@ import * as three from 'three';
 import { addThreeHelpers, init as initCore } from '@node-3d/core';
 import { init, pollEvents, runCallbacks, shutdown, sockets } from '@node-3d/gabenet';
 
-const port = 39000;
+const port = 39_000;
 const probeTimeoutMs = 1500;
 const connectedState = 3;
 const snapshotRate = 20;
@@ -41,7 +41,7 @@ type TInput = Readonly<{
 type TShoot = Readonly<{ type: 'shoot'; targetX: number; targetY: number }>;
 type TMessage = TInput | TShoot | TState;
 
-const wait = (milliseconds: number): Promise<void> =>
+const wait = async (milliseconds: number): Promise<void> =>
 	new Promise((res) => {
 		setTimeout(res, milliseconds);
 	});
@@ -179,13 +179,11 @@ try {
 		if (typeof event.key === 'string') {
 			updateKeys(true, event.key);
 		}
-		return true;
 	});
 	doc.addEventListener('keyup', (event) => {
 		if (typeof event.key === 'string') {
 			updateKeys(false, event.key);
 		}
-		return true;
 	});
 	doc.addEventListener('mousedown', (event) => {
 		const mouseEvent = event as { button?: unknown; clientX?: unknown; clientY?: unknown };
@@ -194,7 +192,7 @@ try {
 			typeof mouseEvent.clientX !== 'number' ||
 			typeof mouseEvent.clientY !== 'number'
 		) {
-			return true;
+			return;
 		}
 		const targetX = (mouseEvent.clientX / doc.innerWidth) * 16 - 8;
 		const targetY = 5 - (mouseEvent.clientY / doc.innerHeight) * 10;
@@ -203,7 +201,6 @@ try {
 		} else if (peer !== null) {
 			send(peer, { type: 'shoot', targetX, targetY });
 		}
-		return true;
 	});
 
 	const syncState = (state: TState): void => {

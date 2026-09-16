@@ -5,7 +5,7 @@ if (!result.ok) {
 	throw new Error(result.errorMessage);
 }
 
-const port = 39000 + Math.floor(Math.random() * 1000);
+const port = 39_000 + Math.floor(Math.random() * 1000);
 const listenSocket = sockets.createListenSocketIP(port, '127.0.0.1');
 const client = sockets.connectByIPAddress('127.0.0.1', port);
 let server: ReturnType<typeof sockets.connectByIPAddress> | null = null;
@@ -32,7 +32,7 @@ try {
 	for (let attempt = 0; attempt < 100; ++attempt) {
 		runCallbacks();
 		const messages = sockets.receiveMessagesOnConnection(server);
-		if (messages.length > 0) {
+		if (messages.length > 0 && messages[0]) {
 			console.log(messages[0].data.toString());
 			break;
 		}
