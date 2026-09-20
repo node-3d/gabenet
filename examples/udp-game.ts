@@ -132,7 +132,7 @@ try {
 		autoEsc: true,
 		title: server ? 'Gabenet UDP server' : 'Gabenet UDP client',
 	});
-	addThreeHelpers(three);
+	addThreeHelpers();
 	const scene = new three.Scene();
 	const camera = new three.OrthographicCamera(-8, 8, 5, -5, 0, 10);
 	camera.position.z = 1;
